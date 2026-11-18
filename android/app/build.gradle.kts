@@ -29,6 +29,14 @@ android {
         versionName = flutter.versionName
     }
 
+    // AGP's default asset filter skips dotfiles (".*"), which drops Flutter's .env from the APK.
+    // Same defaults as AGP, minus ".*".
+    androidResources {
+        ignoreAssetsPatterns += listOf(
+            "!.svn", "!.git", "!.ds_store", "!*.scc", "<dir>_*", "!CVS", "!thumbs.db", "!picasa.ini", "!*~",
+        )
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
