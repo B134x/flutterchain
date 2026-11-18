@@ -1,0 +1,265 @@
+[
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "alatId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "nama",
+        "type": "string"
+      }
+    ],
+    "name": "AlatDitambah",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "alatId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "nama",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "aktif",
+        "type": "bool"
+      }
+    ],
+    "name": "AlatDiubah",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "alatId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "oleh",
+        "type": "address"
+      }
+    ],
+    "name": "Dikembalikan",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "alatId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "peminjam",
+        "type": "address"
+      }
+    ],
+    "name": "Dipinjam",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "admin",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "alatId",
+        "type": "uint256"
+      }
+    ],
+    "name": "ambilAlat",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "nama",
+        "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "tersedia",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "aktif",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "name": "ambilPeminjaman",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "alatId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "peminjam",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "waktuPinjam",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "waktuKembali",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "jumlahAlat",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "jumlahPeminjaman",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "name": "kembalikan",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "alatId",
+        "type": "uint256"
+      }
+    ],
+    "name": "pinjam",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "nama",
+        "type": "string"
+      }
+    ],
+    "name": "tambahAlat",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "alatId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "nama",
+        "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "aktif",
+        "type": "bool"
+      }
+    ],
+    "name": "ubahAlat",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
