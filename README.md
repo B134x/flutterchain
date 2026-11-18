@@ -8,8 +8,8 @@ Aplikasi hanya berjalan di *testnet*: aplikasi menolak *chain* selain Sepolia (*
 
 | Anggota | Peran |
 |---|---|
-| [Nama anggota 1] | [peran] |
-| [Nama anggota 2] | [peran] |
+| Muhamad RAfi Pratama | [peran] |
+| Nabila Noor Faijah | [peran] |
 
 ## Fitur
 
