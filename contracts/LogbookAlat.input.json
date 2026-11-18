@@ -1,0 +1,35 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/LogbookAlat.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\n/// @title LogbookAlat: on-chain loan log for IoT lab tools.\n/// @notice Borrowers are known only by wallet address: on-chain data is public and permanent, so no names or student IDs.\ncontract LogbookAlat {\n    struct Alat {\n        string nama;   // e.g. \"ESP32-S3 N16R8 #1\"\n        bool tersedia; // false while the tool is lent out\n        bool aktif;    // false once the admin retires the tool\n    }\n\n    struct Peminjaman {\n        uint256 alatId;\n        address peminjam;\n        uint256 waktuPinjam;\n        uint256 waktuKembali; // 0 while the tool has not been returned\n    }\n\n    /// The lab admin: the wallet that deployed the contract.\n    address public immutable admin;\n\n    Alat[] private daftarAlat;\n    Peminjaman[] private daftarPeminjaman;\n\n    event AlatDitambah(uint256 indexed alatId, string nama);\n    event AlatDiubah(uint256 indexed alatId, string nama, bool aktif);\n    event Dipinjam(uint256 indexed id, uint256 indexed alatId, address indexed peminjam);\n    event Dikembalikan(uint256 indexed id, uint256 indexed alatId, address oleh);\n\n    modifier hanyaAdmin() {\n        require(msg.sender == admin, \"Bukan admin\");\n        _;\n    }\n\n    constructor() {\n        admin = msg.sender;\n    }\n\n    function tambahAlat(string calldata nama) external hanyaAdmin {\n        require(bytes(nama).length > 0, \"Nama alat kosong\");\n        daftarAlat.push(Alat(nama, true, true));\n        emit AlatDitambah(daftarAlat.length - 1, nama);\n    }\n\n    /// Renames, retires or reactivates a tool. Tools are retired, never removed, so loan history stays intact.\n    function ubahAlat(uint256 alatId, string calldata nama, bool aktif) external hanyaAdmin {\n        require(alatId < daftarAlat.length, \"Alat tidak ada\");\n        require(bytes(nama).length > 0, \"Nama alat kosong\");\n        Alat storage a = daftarAlat[alatId];\n        if (!aktif) {\n            require(a.tersedia, \"Alat sedang dipinjam\");\n        }\n        a.nama = nama;\n        a.aktif = aktif;\n        emit AlatDiubah(alatId, nama, aktif);\n    }\n\n    function pinjam(uint256 alatId) external {\n        require(alatId < daftarAlat.length, \"Alat tidak ada\");\n        Alat storage a = daftarAlat[alatId];\n        require(a.aktif, \"Alat tidak aktif\");\n        require(a.tersedia, \"Alat sedang dipinjam\");\n        a.tersedia = false;\n        daftarPeminjaman.push(Peminjaman(alatId, msg.sender, block.timestamp, 0));\n        emit Dipinjam(daftarPeminjaman.length - 1, alatId, msg.sender);\n    }\n\n    /// The borrower returns the tool, or the admin records the return for them.\n    function kembalikan(uint256 id) external {\n        require(id < daftarPeminjaman.length, \"Peminjaman tidak ada\");\n        Peminjaman storage p = daftarPeminjaman[id];\n        require(p.waktuKembali == 0, \"Sudah dikembalikan\");\n        require(msg.sender == p.peminjam || msg.sender == admin, \"Bukan peminjam\");\n        p.waktuKembali = block.timestamp;\n        daftarAlat[p.alatId].tersedia = true;\n        emit Dikembalikan(id, p.alatId, msg.sender);\n    }\n\n    function jumlahAlat() external view returns (uint256) {\n        return daftarAlat.length;\n    }\n\n    function ambilAlat(uint256 alatId) external view returns (string memory nama, bool tersedia, bool aktif) {\n        require(alatId < daftarAlat.length, \"Alat tidak ada\");\n        Alat storage a = daftarAlat[alatId];\n        return (a.nama, a.tersedia, a.aktif);\n    }\n\n    function jumlahPeminjaman() external view returns (uint256) {\n        return daftarPeminjaman.length;\n    }\n\n    function ambilPeminjaman(uint256 id)\n        external\n        view\n        returns (uint256 alatId, address peminjam, uint256 waktuPinjam, uint256 waktuKembali)\n    {\n        require(id < daftarPeminjaman.length, \"Peminjaman tidak ada\");\n        Peminjaman storage p = daftarPeminjaman[id];\n        return (p.alatId, p.peminjam, p.waktuPinjam, p.waktuKembali);\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "": [
+          "ast"
+        ],
+        "*": [
+          "abi",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.legacyAssembly",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "evm.gasEstimates",
+          "evm.assembly"
+        ]
+      }
+    },
+    "remappings": []
+  }
+}
