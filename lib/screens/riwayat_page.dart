@@ -6,6 +6,7 @@ import '../logbook_controller.dart';
 import '../models.dart';
 import '../util/format.dart';
 import '../widgets/confirm.dart';
+import '../widgets/filter_row.dart';
 
 /// Loan history; returned loans are struck through.
 class RiwayatPage extends StatelessWidget {
@@ -21,24 +22,28 @@ class RiwayatPage extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: [
-              for (final f in LoanFilter.values)
-                ChoiceChip(
-                  label: Text(f.label),
-                  selected: c.filter == f,
-                  onSelected: f == LoanFilter.milikSaya && !c.hasKey ? null : (_) => c.setFilter(f),
-                ),
-            ],
+          FilterRow<LoanFilter>(
+            values: LoanFilter.values,
+            selected: c.filter,
+            labelOf: (f) => f.label,
+            onSelected: c.setFilter,
+            enabled: (f) => f != LoanFilter.milikSaya || c.hasKey,
           ),
+          if (!c.hasKey) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Filter Milik saya aktif setelah wallet uji dibuat di tab Wallet.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.primary),
+            ),
+          ],
           const SizedBox(height: 8),
           if (loans.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 48),
               child: Text(
-                c.loans.isEmpty ? 'Belum ada peminjaman.' : 'Tidak ada peminjaman untuk filter ini.',
+                c.loans.isEmpty
+                    ? 'Belum ada peminjaman. Pinjam alat lewat tombol Pinjam alat di bawah atau dari tab Alat.'
+                    : 'Tidak ada peminjaman untuk filter ini. Pilih Semua untuk melihat seluruh riwayat.',
                 textAlign: TextAlign.center,
               ),
             ),
@@ -73,28 +78,39 @@ class _LoanCard extends StatelessWidget {
     }
 
     return Card(
-      child: ListTile(
-        leading: Icon(
-          loan.dikembalikan ? Icons.check_circle : (overdue ? Icons.warning_amber : Icons.schedule),
-          color: loan.dikembalikan ? scheme.primary : (overdue ? scheme.error : scheme.tertiary),
-        ),
-        title: Text(
-          toolName,
-          style: loan.dikembalikan
-              ? TextStyle(decoration: TextDecoration.lineThrough, color: scheme.onSurfaceVariant)
-              : null,
-        ),
-        subtitle: Text(
-          'Peminjaman #${loan.id} · ${mine ? 'Anda' : shortAddress(loan.peminjam)}\n'
-          'Dipinjam ${formatTime(loan.waktuPinjam)}\n$state',
-        ),
-        isThreeLine: true,
-        trailing: canReturn
-            ? FilledButton.tonal(
-                onPressed: c.tx?.busy ?? false ? null : () => _giveBack(context, c, toolName),
-                child: const Text('Kembalikan'),
-              )
-            : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ListTile(
+            leading: Icon(
+              loan.dikembalikan ? Icons.check_circle : (overdue ? Icons.warning_amber : Icons.schedule),
+              color: loan.dikembalikan ? scheme.primary : (overdue ? scheme.error : scheme.tertiary),
+            ),
+            title: Text(
+              toolName,
+              style: loan.dikembalikan
+                  ? TextStyle(decoration: TextDecoration.lineThrough, color: scheme.onSurfaceVariant)
+                  : null,
+            ),
+            subtitle: Text(
+              'Peminjaman #${loan.id} · ${mine ? 'Anda' : shortAddress(loan.peminjam)}\n'
+              'Dipinjam ${formatTime(loan.waktuPinjam)}\n$state',
+            ),
+            isThreeLine: true,
+          ),
+          // Below the text rather than beside it, so dates and status keep the full width.
+          if (canReturn)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton.tonal(
+                  onPressed: c.tx?.busy ?? false ? null : () => _giveBack(context, c, toolName),
+                  child: const Text('Kembalikan'),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
