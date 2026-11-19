@@ -8,6 +8,8 @@ import 'package:web3dart/web3dart.dart';
 import '../config.dart';
 import '../models.dart';
 
+typedef Snapshot = ({EthereumAddress admin, List<Alat> tools, List<Peminjaman> loans, EtherAmount? balance});
+
 /// All blockchain access for one connection: free reads via `eth_call`, signed writes that cost gas,
 /// events via logs.
 class LogbookService {
@@ -46,23 +48,40 @@ class LogbookService {
     }
   }
 
-  Future<List<dynamic>> _read(String function, [List<dynamic> params = const []]) =>
-      _client.call(contract: _contract, function: _contract.function(function), params: params);
+  /// Everything the screens show, read at one block: public RPCs spread calls over nodes a block apart,
+  /// so unpinned counts and items could disagree. [notBefore] keeps the read after a just-mined transaction.
+  Future<Snapshot> snapshot(EthereumAddress? me, {int? notBefore}) async {
+    final head = await _client.getBlockNumber();
+    final at = BlockNum.exact(notBefore != null && notBefore > head ? notBefore : head);
+    final results = await Future.wait<Object>([
+      _read('admin', at),
+      _allTools(at),
+      _allLoans(at),
+      if (me != null) _client.getBalance(me, atBlock: at),
+    ]);
+    return (
+      admin: (results[0] as List<dynamic>).first as EthereumAddress,
+      tools: results[1] as List<Alat>,
+      loans: results[2] as List<Peminjaman>,
+      balance: me != null ? results[3] as EtherAmount : null,
+    );
+  }
 
-  Future<EthereumAddress> admin() async => (await _read('admin')).first as EthereumAddress;
+  Future<List<dynamic>> _read(String function, BlockNum at, [List<dynamic> params = const []]) =>
+      _client.call(contract: _contract, function: _contract.function(function), params: params, atBlock: at);
 
-  Future<List<Alat>> allTools() async {
-    final count = ((await _read('jumlahAlat')).first as BigInt).toInt();
+  Future<List<Alat>> _allTools(BlockNum at) async {
+    final count = ((await _read('jumlahAlat', at)).first as BigInt).toInt();
     return Future.wait(List.generate(count, (i) async {
-      final r = await _read('ambilAlat', [BigInt.from(i)]);
+      final r = await _read('ambilAlat', at, [BigInt.from(i)]);
       return Alat(id: i, nama: r[0] as String, tersedia: r[1] as bool, aktif: r[2] as bool);
     }));
   }
 
-  Future<List<Peminjaman>> allLoans() async {
-    final count = ((await _read('jumlahPeminjaman')).first as BigInt).toInt();
+  Future<List<Peminjaman>> _allLoans(BlockNum at) async {
+    final count = ((await _read('jumlahPeminjaman', at)).first as BigInt).toInt();
     return Future.wait(List.generate(count, (i) async {
-      final r = await _read('ambilPeminjaman', [BigInt.from(i)]);
+      final r = await _read('ambilPeminjaman', at, [BigInt.from(i)]);
       final returnedAt = r[3] as BigInt;
       return Peminjaman(
         id: i,
@@ -73,8 +92,6 @@ class LogbookService {
       );
     }));
   }
-
-  Future<EtherAmount> balance(EthereumAddress address) => _client.getBalance(address);
 
   /// Returns the transaction hash. The gas estimate simulates the call first,
   /// so a call the contract would reject fails here, before anything is paid.
@@ -108,12 +125,14 @@ class LogbookService {
   /// Names of contract events since the last call; the first call only records the block.
   /// Not web3dart's `events()`: its polling errors never reach the stream, so updates stop silently.
   Future<List<String>> newEvents() async {
-    final latest = await _client.getBlockNumber();
+    // One block behind the head: the node answering getLogs may not have the newest block yet.
+    final latest = await _client.getBlockNumber() - 1;
     final from = _lastBlock;
-    if (from == null || latest <= from) {
+    if (from == null) {
       _lastBlock = latest;
       return const [];
     }
+    if (latest <= from) return const [];
     // Providers cap log ranges, so after a long pause skip the backlog and resync.
     if (latest - from > 500) {
       _lastBlock = latest;

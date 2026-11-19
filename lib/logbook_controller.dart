@@ -71,7 +71,7 @@ class LogbookController extends ChangeNotifier {
   TxStatus? tx;
   LoanFilter filter = LoanFilter.semua;
 
-  /// True while event polling works; false if the RPC refuses log queries.
+  /// True while event polling works; false after three failed polls in a row.
   bool liveUpdates = false;
 
   /// Increments whenever new contract events arrive; [lastEvent] describes them.
@@ -81,6 +81,7 @@ class LogbookController extends ChangeNotifier {
   EthPrivateKey? _key;
   Timer? _eventTimer;
   bool _checkingEvents = false;
+  int _failedPolls = 0;
   bool _disposed = false;
 
   EthereumAddress? get contract => _service?.connection.contract;
@@ -210,24 +211,19 @@ class LogbookController extends ChangeNotifier {
   }
 
   /// On failure the old data stays visible.
-  Future<void> refresh() async {
+  Future<void> refresh({int? notBefore}) async {
     final service = _service;
     if (service == null) {
       _notify();
       return;
     }
+    final me = myAddress;
     try {
-      final me = myAddress;
-      final results = await Future.wait<Object>([
-        service.admin(),
-        service.allTools(),
-        service.allLoans(),
-        if (me != null) service.balance(me),
-      ]);
-      admin = results[0] as EthereumAddress;
-      tools = results[1] as List<Alat>;
-      loans = (results[2] as List<Peminjaman>).reversed.toList();
-      balance = me != null ? results[3] as EtherAmount : null;
+      final snap = await _retryOnce(() => service.snapshot(me, notBefore: notBefore));
+      admin = snap.admin;
+      tools = snap.tools;
+      loans = snap.loans.reversed.toList();
+      balance = snap.balance;
       status = LoadStatus.ready;
       error = null;
     } catch (e) {
@@ -235,6 +231,16 @@ class LogbookController extends ChangeNotifier {
       if (status != LoadStatus.ready) status = LoadStatus.failed;
     }
     _notify();
+  }
+
+  /// A public RPC node one block behind fails the first read; a second try moments later usually succeeds.
+  static Future<T> _retryOnce<T>(Future<T> Function() action) async {
+    try {
+      return await action();
+    } catch (_) {
+      await Future<void>.delayed(const Duration(seconds: 2));
+      return action();
+    }
   }
 
   Future<void> borrow(Alat tool) => _send('pinjam', [BigInt.from(tool.id)], 'Meminjam ${tool.nama}');
@@ -259,12 +265,14 @@ class LogbookController extends ChangeNotifier {
     tx = TxStatus(TxStage.sending, label);
     _notify();
     String? hash;
+    int? minedIn;
     try {
       hash = await service.send(key, function, params);
       tx = TxStatus(TxStage.waiting, label, hash: hash);
       _notify();
 
       final receipt = await service.waitForReceipt(hash);
+      if (receipt.blockNumber.useAbsolute) minedIn = receipt.blockNumber.blockNum;
       final gasUsed = receipt.gasUsed;
       final price = receipt.effectiveGasPrice;
       final fee = gasUsed != null && price != null ? EtherAmount.inWei(gasUsed * price.getInWei) : null;
@@ -276,7 +284,7 @@ class LogbookController extends ChangeNotifier {
       tx = TxStatus(TxStage.failed, label, hash: hash, message: errorMessage(e));
     }
     _notify();
-    await refresh();
+    await refresh(notBefore: minedIn);
   }
 
   void dismissTx() {
@@ -316,6 +324,7 @@ class LogbookController extends ChangeNotifier {
     _checkingEvents = true;
     try {
       final events = await service.newEvents();
+      _failedPolls = 0;
       if (!liveUpdates) {
         liveUpdates = true;
         _notify();
@@ -333,8 +342,8 @@ class LogbookController extends ChangeNotifier {
         await refresh();
       }
     } catch (_) {
-      // Retried on the next tick; the indicator shows updates are paused.
-      if (liveUpdates) {
+      // Retried on the next tick. A single miss is normal on a public RPC, so the icon waits for three.
+      if (++_failedPolls >= 3 && liveUpdates) {
         liveUpdates = false;
         _notify();
       }
