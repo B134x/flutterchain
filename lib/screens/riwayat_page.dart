@@ -85,7 +85,7 @@ class _LoanCard extends StatelessWidget {
               : null,
         ),
         subtitle: Text(
-          '#${loan.id} · ${mine ? 'Anda' : shortAddress(loan.peminjam)}\n'
+          'Peminjaman #${loan.id} · ${mine ? 'Anda' : shortAddress(loan.peminjam)}\n'
           'Dipinjam ${formatTime(loan.waktuPinjam)}\n$state',
         ),
         isThreeLine: true,

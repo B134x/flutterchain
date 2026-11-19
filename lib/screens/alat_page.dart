@@ -24,6 +24,13 @@ class AlatPage extends StatelessWidget {
                 : 'Katalog alat dikelola admin lab. Pilih alat yang tersedia untuk dipinjam.',
             style: Theme.of(context).textTheme.bodySmall,
           ),
+          if (!c.hasKey) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Tombol Pinjam aktif setelah wallet uji dibuat di tab Wallet.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.primary),
+            ),
+          ],
           const SizedBox(height: 8),
           if (c.tools.isEmpty)
             const Padding(
