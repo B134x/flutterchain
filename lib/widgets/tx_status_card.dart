@@ -58,7 +58,6 @@ class TxStatusCard extends StatelessWidget {
                           Text('Hash: ${shortHash(hash)}'),
                           IconButton(
                             tooltip: 'Salin hash',
-                            visualDensity: VisualDensity.compact,
                             icon: Icon(Icons.content_copy, size: 18, color: foreground),
                             onPressed: () => Clipboard.setData(ClipboardData(text: hash)),
                           ),

@@ -47,17 +47,20 @@ class _WalletPageState extends State<WalletPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Card(
-          color: theme.colorScheme.tertiaryContainer,
-          child: const Padding(
-            padding: EdgeInsets.all(12),
-            child: Text(
-              'Hanya untuk wallet uji di Sepolia. Jangan pernah memasukkan kunci wallet pribadi '
-              'atau wallet yang pernah berisi aset.',
+        // The warning matters while a key can be entered; once a wallet exists it is noise.
+        if (!c.hasKey) ...[
+          Card(
+            color: theme.colorScheme.tertiaryContainer,
+            child: const Padding(
+              padding: EdgeInsets.all(12),
+              child: Text(
+                'Hanya untuk wallet uji di Sepolia. Jangan pernah memasukkan kunci wallet pribadi '
+                'atau wallet yang pernah berisi aset.',
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 16),
+          const SizedBox(height: 16),
+        ],
         if (c.hasKey) ..._walletInfo(context, c) else ..._walletSetup(context, c),
       ],
     );
@@ -81,10 +84,11 @@ class _WalletPageState extends State<WalletPage> {
       if (c.isAdmin) const Chip(avatar: Icon(Icons.verified_user_outlined), label: Text('Admin kontrak')),
       const SizedBox(height: 8),
       Text('Saldo: ${c.balance == null ? '-' : formatEth(c.balance!)}', style: theme.textTheme.titleMedium),
-      Text(
-        'Isi saldo dengan Sepolia ETH dari faucet, atau kirim dari akun MetaMask uji ke alamat di atas.',
-        style: theme.textTheme.bodySmall,
-      ),
+      if (c.balance?.getInWei == BigInt.zero)
+        Text(
+          'Isi saldo dengan Sepolia ETH dari faucet, atau kirim dari akun MetaMask uji ke alamat di atas.',
+          style: theme.textTheme.bodySmall,
+        ),
       const SizedBox(height: 8),
       Wrap(
         spacing: 8,
@@ -95,6 +99,10 @@ class _WalletPageState extends State<WalletPage> {
             label: const Text('Etherscan'),
           ),
           OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.colorScheme.error,
+              side: BorderSide(color: theme.colorScheme.error),
+            ),
             onPressed: () async {
               final ok = await confirmTransaction(
                 context,
@@ -102,6 +110,7 @@ class _WalletPageState extends State<WalletPage> {
                 body: 'Kunci tidak bisa dipulihkan dari aplikasi. Saldo di alamat ini hanya bisa dipakai '
                     'lagi jika kunci yang sama diimpor kembali.',
                 action: 'Hapus',
+                destructive: true,
               );
               if (ok) await c.deleteKey();
             },

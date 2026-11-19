@@ -6,7 +6,9 @@ Future<bool> confirmTransaction(
   required String title,
   required String body,
   String action = 'Kirim',
+  bool destructive = false,
 }) async {
+  final scheme = Theme.of(context).colorScheme;
   final result = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -14,7 +16,13 @@ Future<bool> confirmTransaction(
       content: Text(body),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(action)),
+        FilledButton(
+          style: destructive
+              ? FilledButton.styleFrom(backgroundColor: scheme.error, foregroundColor: scheme.onError)
+              : null,
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(action),
+        ),
       ],
     ),
   );
