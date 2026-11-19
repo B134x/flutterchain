@@ -8,8 +8,10 @@ Aplikasi hanya berjalan di *testnet*: aplikasi menolak *chain* selain Sepolia (*
 
 | Anggota | Peran |
 |---|---|
-| Muhamad RAfi Pratama | [peran] |
-| Nabila Noor Faijah | [peran] |
+| Muhamad Rafi Pratama | Dev 1; kontrak dan aplikasi Flutter; deploy, verif di Etherscan |
+| Nabila Noor Faijah | Dev 2; Pendukung kontrak dan aplikasi; penyusunan laporan dan editor |
+
+Keduanya menguji APK di ponsel, memeriksa transaksi di Etherscan, and mengerjakan video demo bersama (rekam layar, voice overnya, dan penyuntingan).
 
 ## Fitur
 
@@ -162,4 +164,4 @@ Berkas APK tersimpan di `build/app/outputs/flutter-apk/app-release.apk`.
 - **[web3dart](https://pub.dev/packages/web3dart)** (lisensi MIT). Pola `Web3Client`, `DeployedContract`, `call`, dan `sendTransaction` mengikuti dokumentasi paket.
 - **Templat `flutter create`** (lisensi BSD-3-Clause, The Flutter Authors) dipakai sebagai kerangka proyek Android.
 - **Dokumentasi** Solidity, Remix IDE, MetaMask, dan Etherscan menjadi rujukan *deploy* dan verifikasi.
-- **Bantuan AI**: Claude (Anthropic), lewat Claude Code, dipakai untuk merancang kontrak, menulis sebagian besar kode aplikasi dan pengujian, serta menyusun draf README ini. Kelompok meninjau, menjalankan, dan menguji seluruh kode; setiap anggota mampu menjelaskannya.
+- **Bantuan AI**: Claude (Anthropic), dipakai untuk merancang kontrak, menulis dan membantu perbaiki eror sebagian kode aplikasi. Kelompok meninjau, menjalankan, dan menguji seluruh kode dan setiap anggota mampu menjelaskannya.
