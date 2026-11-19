@@ -35,10 +35,11 @@ Fitur tambahan:
 | | |
 |---|---|
 | Jaringan | Ethereum Sepolia (*chain ID* `11155111`) |
-| Alamat | `[CONTRACT_ADDRESS]` |
-| Transaksi *deploy* | `[DEPLOY_TX_HASH]` |
-| Etherscan | [sepolia.etherscan.io/address/[CONTRACT_ADDRESS]#code](https://sepolia.etherscan.io/address/[CONTRACT_ADDRESS]#code) |
-| Admin | `[ADMIN_ADDRESS]` (*wallet* uji yang men-*deploy* kontrak) |
+| Alamat | `0x41671BA0372272EE157b5Bd2de386D0dC3382618` |
+| Transaksi *deploy* | [`0xdc32edc7fa7335e2d7f037732ec7f59afa5fbe7bbcd0021ae062e672808432ee`](https://sepolia.etherscan.io/tx/0xdc32edc7fa7335e2d7f037732ec7f59afa5fbe7bbcd0021ae062e672808432ee) (blok 12164768) |
+| Etherscan | [sepolia.etherscan.io/address/0x41671BA0372272EE157b5Bd2de386D0dC3382618#code](https://sepolia.etherscan.io/address/0x41671BA0372272EE157b5Bd2de386D0dC3382618#code) |
+| Verifikasi | Kode sumber terverifikasi di Etherscan dengan metode *Standard JSON Input* |
+| Admin | `0x87fB0c6A6C727a60FBC8c6610C1A47D4e4336F00` (*wallet* uji yang men-*deploy* kontrak) |
 | Kompilator | solc `0.8.20+commit.a1b79de6`, *optimizer* nonaktif, EVM `shanghai` |
 | Lisensi | MIT |
 | Sumber | [`contracts/LogbookAlat.sol`](contracts/LogbookAlat.sol); masukan kompilator yang persis sama dengan saat *deploy*: [`contracts/LogbookAlat.input.json`](contracts/LogbookAlat.input.json) |
@@ -92,7 +93,7 @@ Prasyarat: Flutter 3.50.0 (Dart 3.14.0), Android SDK, dan emulator atau ponsel A
 
    ```
    RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
-   CONTRACT_ADDRESS=[CONTRACT_ADDRESS]
+   CONTRACT_ADDRESS=0x41671BA0372272EE157b5Bd2de386D0dC3382618
    CHAIN_ID=11155111
    LOAN_LIMIT_HOURS=24
    ```
