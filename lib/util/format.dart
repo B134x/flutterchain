@@ -20,5 +20,15 @@ String formatDuration(Duration d) {
   return '${d.inMinutes} menit';
 }
 
-String formatEth(EtherAmount amount, {int digits = 5}) =>
-    '${amount.getValueInUnit(EtherUnit.ether).toStringAsFixed(digits)} ETH';
+/// ETH with [digits] decimals. Amounts too small for that, like Sepolia gas fees, switch to gwei or wei
+/// instead of rounding to zero.
+String formatEth(EtherAmount amount, {int digits = 5}) {
+  final wei = amount.getInWei;
+  if (wei == BigInt.zero || wei >= BigInt.from(10).pow(18 - digits)) {
+    return '${amount.getValueInUnit(EtherUnit.ether).toStringAsFixed(digits)} ETH';
+  }
+  if (wei >= BigInt.from(10).pow(9)) {
+    return '${amount.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} gwei';
+  }
+  return '$wei wei';
+}

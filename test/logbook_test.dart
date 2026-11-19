@@ -93,6 +93,13 @@ void main() {
 
     test('ether amounts', () {
       expect(formatEth(EtherAmount.fromBigInt(EtherUnit.gwei, BigInt.from(1500000)), digits: 4), '0.0015 ETH');
+      expect(formatEth(EtherAmount.zero()), '0.00000 ETH');
+    });
+
+    test('tiny gas fees do not round to zero', () {
+      // 367,691 gas at 17 wei: a real Sepolia fee from the app.
+      expect(formatEth(EtherAmount.inWei(BigInt.from(6250747)), digits: 7), '6250747 wei');
+      expect(formatEth(EtherAmount.fromBigInt(EtherUnit.gwei, BigInt.from(12)), digits: 7), '12.00 gwei');
     });
   });
 }
