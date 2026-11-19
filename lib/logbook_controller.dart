@@ -17,10 +17,20 @@ enum LoadStatus { loading, ready, failed, needsSetup }
 enum LoanFilter {
   semua('Semua'),
   dipinjam('Dipinjam'),
-  kembali('Sudah kembali'),
+  kembali('Kembali'),
   milikSaya('Milik saya');
 
   const LoanFilter(this.label);
+  final String label;
+}
+
+enum ToolFilter {
+  semua('Semua'),
+  tersedia('Tersedia'),
+  dipinjam('Dipinjam'),
+  nonaktif('Nonaktif');
+
+  const ToolFilter(this.label);
   final String label;
 }
 
@@ -101,6 +111,20 @@ class LogbookController extends ChangeNotifier {
 
   void setFilter(LoanFilter value) {
     filter = value;
+    _notify();
+  }
+
+  ToolFilter toolFilter = ToolFilter.semua;
+
+  List<Alat> get filteredTools => switch (toolFilter) {
+        ToolFilter.semua => tools,
+        ToolFilter.tersedia => tools.where((a) => a.bisaDipinjam).toList(),
+        ToolFilter.dipinjam => tools.where((a) => a.aktif && !a.tersedia).toList(),
+        ToolFilter.nonaktif => tools.where((a) => !a.aktif).toList(),
+      };
+
+  void setToolFilter(ToolFilter value) {
+    toolFilter = value;
     _notify();
   }
 

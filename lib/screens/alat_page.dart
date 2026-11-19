@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import '../logbook_controller.dart';
 import '../models.dart';
 import '../widgets/confirm.dart';
+import '../widgets/filter_row.dart';
 
 class AlatPage extends StatelessWidget {
   const AlatPage({super.key});
@@ -12,32 +13,42 @@ class AlatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = LogbookScope.of(context);
+    final tools = c.filteredTools;
     return RefreshIndicator(
       onRefresh: c.refresh,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
         children: [
-          Text(
-            c.isAdmin
-                ? 'Anda admin kontrak ini. Tambah atau ubah alat lewat Remix (tambahAlat, ubahAlat).'
-                : 'Katalog alat dikelola admin lab. Pilih alat yang tersedia untuk dipinjam.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          if (!c.hasKey) ...[
-            const SizedBox(height: 4),
+          // Hints only when they explain something on screen: the admin's tools, or a disabled Pinjam button.
+          if (c.isAdmin || !c.hasKey) ...[
             Text(
-              'Tombol Pinjam aktif setelah wallet uji dibuat di tab Wallet.',
+              c.isAdmin
+                  ? 'Anda admin kontrak ini. Tambah atau ubah alat lewat Remix atau tab Write Contract '
+                      'di Etherscan (tambahAlat, ubahAlat).'
+                  : 'Tombol Pinjam aktif setelah wallet uji dibuat di tab Wallet.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.primary),
             ),
+            const SizedBox(height: 8),
           ],
+          FilterRow<ToolFilter>(
+            values: ToolFilter.values,
+            selected: c.toolFilter,
+            labelOf: (f) => f.label,
+            onSelected: c.setToolFilter,
+          ),
           const SizedBox(height: 8),
-          if (c.tools.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 48),
-              child: Text('Belum ada alat. Admin menambahkannya lewat Remix.', textAlign: TextAlign.center),
+          if (tools.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 48),
+              child: Text(
+                c.tools.isEmpty
+                    ? 'Belum ada alat. Admin menambahkannya lewat Remix atau Etherscan.'
+                    : 'Tidak ada alat untuk filter ini. Pilih Semua untuk melihat seluruh katalog.',
+                textAlign: TextAlign.center,
+              ),
             ),
-          for (final tool in c.tools) _ToolCard(tool: tool),
+          for (final tool in tools) _ToolCard(tool: tool),
         ],
       ),
     );
@@ -57,18 +68,18 @@ class _ToolCard extends StatelessWidget {
         : tool.tersedia
             ? ('Tersedia', scheme.primary)
             : ('Sedang dipinjam', scheme.tertiary);
+    final canBorrow = tool.bisaDipinjam && c.hasKey && !(c.tx?.busy ?? false);
 
     return Card(
       child: ListTile(
         leading: Icon(Icons.memory, color: color),
         title: Text(tool.nama),
         subtitle: Text('#${tool.id} · $label', style: TextStyle(color: color)),
-        trailing: tool.bisaDipinjam
-            ? FilledButton(
-                onPressed: !c.hasKey || (c.tx?.busy ?? false) ? null : () => _borrow(context, c),
-                child: const Text('Pinjam'),
-              )
-            : null,
+        // Always present, greyed out when the tool cannot be borrowed, so every row keeps the same shape.
+        trailing: FilledButton(
+          onPressed: canBorrow ? () => _borrow(context, c) : null,
+          child: const Text('Pinjam'),
+        ),
       ),
     );
   }
