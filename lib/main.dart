@@ -47,8 +47,8 @@ class _LogbookAppState extends State<LogbookApp> {
     final app = MaterialApp(
       title: 'Logbook Alat Lab IoT',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(colorSchemeSeed: Colors.teal),
-      darkTheme: ThemeData(colorSchemeSeed: Colors.teal, brightness: Brightness.dark),
+      // Light only, with flat cards: the one theme that is tested.
+      theme: ThemeData(colorSchemeSeed: Colors.teal, cardTheme: const CardThemeData(elevation: 0)),
       home: _controller == null ? _ConfigErrorPage(widget.configError ?? '') : const HomePage(),
     );
     final controller = _controller;
