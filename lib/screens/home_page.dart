@@ -49,6 +49,16 @@ class _HomePageState extends State<HomePage> {
       ..showSnackBar(SnackBar(content: Text('Event baru dari kontrak: $what')));
   }
 
+  void _explainLiveUpdates(bool live) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(live
+            ? 'Pembaruan otomatis aktif: daftar diperbarui sendiri dari event kontrak setiap beberapa detik.'
+            : 'Pembaruan otomatis terhenti karena RPC tidak merespons. Tekan muat ulang atau tarik layar ke bawah.'),
+      ));
+  }
+
   void _openKoneksi() =>
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const KoneksiPage()));
 
@@ -64,11 +74,10 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Logbook Alat Lab IoT'),
         actions: [
           if (ready)
-            Tooltip(
-              message: c.liveUpdates
-                  ? 'Pembaruan otomatis aktif (event kontrak)'
-                  : 'Pembaruan otomatis terhenti; tarik untuk memuat ulang',
-              child: Icon(c.liveUpdates ? Icons.sensors : Icons.sensors_off),
+            IconButton(
+              tooltip: c.liveUpdates ? 'Pembaruan otomatis aktif' : 'Pembaruan otomatis terhenti',
+              icon: Icon(c.liveUpdates ? Icons.sensors : Icons.sensors_off),
+              onPressed: () => _explainLiveUpdates(c.liveUpdates),
             ),
           if (ready)
             IconButton(tooltip: 'Muat ulang', icon: const Icon(Icons.refresh), onPressed: c.refresh),
@@ -91,7 +100,8 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      floatingActionButton: ready && _tab < 2
+      // Only on Riwayat: the Alat tab already has a Pinjam button on every card.
+      floatingActionButton: ready && _tab == 0
           ? FloatingActionButton.extended(
               icon: const Icon(Icons.add),
               label: const Text('Pinjam alat'),
